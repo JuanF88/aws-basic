@@ -25,3 +25,13 @@ variable "additional_tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "security_group_id" {
+  description = "security_group_id"
+  type        = string
+}
+
+variable "subnet_id" {
+  description = "security_group_id"
+  type        = string
+}

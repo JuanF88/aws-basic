@@ -1,6 +1,6 @@
 resource "aws_security_group" "ec2_sg" {
   name        = "${var.instance_name}-sg"
-  description = "${var.instance_name}"
+  description = var.instance_name
   vpc_id      = var.vpc_id
 
   tags = merge(
