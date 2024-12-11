@@ -9,6 +9,19 @@ variable "instance_type" {
   }
 }
 
+variable "instance_type_map" {
+  description = "Type of the EC2 instance"
+  type        = map(string)
+  default = {
+    dev = "t3.micro"
+    qa  = "t3.small"
+  }
+}
+
+variable "env" {
+  type = string
+}
+
 variable "user_data" {
   description = "User data script to initialize the instance"
   type        = string
@@ -31,7 +44,7 @@ variable "security_group_id" {
   type        = string
 }
 
-variable "subnet_id" {
-  description = "security_group_id"
-  type        = string
-}
+# variable "subnet_id" {
+#   description = "security_group_id"
+#   type        = string
+# }
