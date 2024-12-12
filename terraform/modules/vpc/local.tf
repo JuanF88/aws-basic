@@ -1,4 +1,3 @@
-
 locals {
   name   = "ex-${basename(path.cwd)}"
   region = "eu-west-2"
@@ -12,3 +11,4 @@ locals {
     GithubOrg  = "terraform-aws-modules"
   }
 }
+
