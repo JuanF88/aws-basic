@@ -1,21 +1,24 @@
-module "vpc" {
-  source = "./modules/vpc"
-  environment = "dev"
-  public_subnet_count = 2
-  private_subnet_count = 2
-  cluster_name = "ex-terraform"
-}
+# module "vpc" {
+#   source = "./modules/vpc"
+#   environment = "dev"
+#   public_subnet_count = 2
+#   private_subnet_count = 2
+#   cluster_name = "ex-terraform"
+# }
 
-module "eks" {
-  source = "./modules/eks"
-  cluster_name       = "ex-terraform"
-  environment        = "dev"
-  vpc_id             = module.vpc.vpc_id
-  private_subnet_ids = module.vpc.private_subnet_ids
-  public_subnet_ids  = module.vpc.public_subnet_ids
-  #ec2_ssh_key_name   = "myLinux"
-}
+# module "eks" {
+#   source = "./modules/eks"
+#   cluster_name       = "ex-terraform"
+#   environment        = "dev"
+#   vpc_id             = module.vpc.vpc_id
+#   private_subnet_ids = module.vpc.private_subnet_ids
+#   public_subnet_ids  = module.vpc.public_subnet_ids
+#   #ec2_ssh_key_name   = "myLinux"
+# }
 
+module "mks" {
+  source             = "./modules/mks"
+}
 
 # module "security_group" {
 #   source = "./modules/securityGroup"
