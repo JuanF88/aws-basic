@@ -14,3 +14,8 @@ variable "additional_tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "private_subnets_cidr_blocks" {
+  description = "value"
+  type        = list(string)
+}

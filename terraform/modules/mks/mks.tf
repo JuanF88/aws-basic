@@ -10,9 +10,11 @@ module "msk_cluster" {
   kafka_version          = "3.5.1"
   number_of_broker_nodes = 3
 
-  broker_node_client_subnets  = module.vpc.private_subnets
+  #broker_node_client_subnets  = module.vpc.private_subnets
+  broker_node_client_subnets = var.private_subnets
+
   broker_node_instance_type   = "kafka.t3.small"
-  broker_node_security_groups = [module.security_group.security_group_id]
+  broker_node_security_groups = [var.security_group_id]
 
   tags = local.tags
 }
@@ -28,42 +30,41 @@ module "msk_cluster_disabled" {
   create = false
 }
 
-################################################################################
-# Supporting Resources
-################################################################################
+#IAM principal access to Kubernetes 
+resource "kubernetes_config_map" "aws_auth" {
+  metadata {
+    name      = "aws-auth"
+    namespace = "kube-system"
+  }
 
-module "vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 5.0"
-
-  name = local.name
-  cidr = local.vpc_cidr
-
-  azs              = local.azs
-  public_subnets   = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k)]
-  private_subnets  = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 3)]
-  database_subnets = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 6)]
-
-  create_database_subnet_group = true
-  enable_nat_gateway           = true
-  single_nat_gateway           = true
-
-  tags = local.tags
+  data = {
+    mapUsers = <<EOF
+- userarn: arn:aws:iam::677276109682:root
+  username: root
+  groups:
+    - system:masters
+EOF
+  }
 }
 
-module "security_group" {
-  source  = "terraform-aws-modules/security-group/aws"
-  version = "~> 5.0"
 
-  name        = local.name
-  description = "Security group for ${local.name}"
-  vpc_id      = module.vpc.vpc_id
+resource "aws_iam_role" "eks_admin_role" {
+  name = "eks-cluster-admin-role"
 
-  ingress_cidr_blocks = module.vpc.private_subnets_cidr_blocks
-  ingress_rules = [
-    "kafka-broker-tcp",
-    "kafka-broker-tls-tcp"
-  ]
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Action = "sts:AssumeRole",
+      Effect = "Allow",
+      Principal = {
+        Service = "eks.amazonaws.com"
+      }
+    }]
+  })
+}
 
-  tags = local.tags
+resource "aws_iam_role_policy_attachment" "eks_admin_policy_attachment" {
+  role       = aws_iam_role.eks_admin_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterAdminPolicy"
+  depends_on = [aws_iam_role.eks_admin_role]
 }
