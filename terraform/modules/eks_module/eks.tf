@@ -11,13 +11,11 @@ resource "aws_eks_cluster" "example" {
     enabled       = true
     node_pools    = ["general-purpose"]
     node_role_arn = aws_iam_role.node.arn
-
   }
 
   kubernetes_network_config {
     elastic_load_balancing {
       enabled = true
-
     }
   }
 
@@ -26,8 +24,6 @@ resource "aws_eks_cluster" "example" {
       enabled = true
     }
   }
-
-
   vpc_config {
 
     endpoint_private_access = true
@@ -46,10 +42,34 @@ resource "aws_eks_cluster" "example" {
     aws_iam_role_policy_attachment.cluster_AmazonEKSBlockStoragePolicy,
     aws_iam_role_policy_attachment.cluster_AmazonEKSLoadBalancingPolicy,
     aws_iam_role_policy_attachment.cluster_AmazonEKSNetworkingPolicy,
+    aws_iam_role_policy_attachment.node_AmazonEKSWorkerNodePolicy,
   ]
-
 }
 
+resource "aws_eks_node_group" "eks_node_group" {
+cluster_name    = var.cluster_name
+  node_group_name = "${var.cluster_name}-node-group"
+  node_role_arn   = aws_iam_role.node.arn
+  subnet_ids      = var.public_subnet_ids
+
+  instance_types = ["t3.small"]
+  scaling_config {
+    desired_size = 1
+    max_size     = 2
+    min_size     = 1
+  }
+
+  depends_on = [
+    aws_eks_cluster.example,
+    aws_iam_role_policy_attachment.cluster_AmazonEKSNetworkingPolicy,
+    aws_iam_role_policy_attachment.cluster_AmazonEKSLoadBalancingPolicy,
+    aws_iam_role_policy_attachment.cluster_AmazonEKSBlockStoragePolicy,
+    aws_iam_role_policy_attachment.node_AmazonEC2ContainerRegistryPullOnly,
+    aws_iam_role_policy_attachment.node_AmazonEKS_CNI_Policy,
+    aws_iam_role_policy_attachment.node_AmazonEKSWorkerNodePolicy,
+    aws_iam_role.node,
+  ]
+}
 resource "aws_iam_role" "node" {
   name = "eks-auto-node-example"
   assume_role_policy = jsonencode({
@@ -64,11 +84,6 @@ resource "aws_iam_role" "node" {
       },
     ]
   })
-}
-
-resource "aws_iam_role_policy_attachment" "node_AmazonEC2ContainerRegistryPullOnly" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly"
-  role       = aws_iam_role.node.name
 }
 
 resource "aws_iam_role" "cluster" {
@@ -88,6 +103,11 @@ resource "aws_iam_role" "cluster" {
       },
     ]
   })
+}
+
+resource "aws_iam_role_policy_attachment" "node_AmazonEC2ContainerRegistryPullOnly" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly"
+  role       = aws_iam_role.node.name
 }
 
 resource "aws_iam_role_policy_attachment" "cluster_AmazonEKSClusterPolicy" {
@@ -115,34 +135,11 @@ resource "aws_iam_role_policy_attachment" "cluster_AmazonEKSNetworkingPolicy" {
   role       = aws_iam_role.cluster.name
 }
 
-resource "aws_eks_node_group" "eks_node_group" {
-  cluster_name    = var.cluster_name
-  node_group_name = "${var.cluster_name}-node-group"
-  node_role_arn   = aws_iam_role.node.arn
-  subnet_ids      = var.public_subnet_ids # Use public subnets
-
-  scaling_config {
-    desired_size = 1
-    max_size     = 1
-    min_size     = 1
-  }
-
-  instance_types = ["t3.small"]
-
-  # remote_access {
-  #   ec2_ssh_key               = var.ec2_ssh_key_name
-  #   source_security_group_ids = [aws_security_group.eks_worker_sg.id]
-  # }
-
-  tags = {
-    Environment = var.environment
-    Name        = "${var.cluster_name}-node-group"
-  }
-
-  depends_on = [
-    aws_iam_role_policy_attachment.cluster_AmazonEKSNetworkingPolicy,
-    aws_iam_role_policy_attachment.cluster_AmazonEKSLoadBalancingPolicy,
-    aws_iam_role_policy_attachment.cluster_AmazonEKSBlockStoragePolicy,
-  ]
+resource "aws_iam_role_policy_attachment" "node_AmazonEKSWorkerNodePolicy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+  role       = aws_iam_role.node.name
 }
-
+resource "aws_iam_role_policy_attachment" "node_AmazonEKS_CNI_Policy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+  role       = aws_iam_role.node.name
+}
