@@ -1,4 +1,7 @@
 locals {
+  eks_cluster_name = "eks-ex-terraform"
+  mks_cluster_name = "mks-ex-terraform"
+  environment      = "dev"
   mks_module = {
     ingress_rules = [
       {

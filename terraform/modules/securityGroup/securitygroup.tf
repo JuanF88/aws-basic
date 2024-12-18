@@ -9,6 +9,9 @@ resource "aws_security_group" "ec2_sg" {
     },
     var.additional_tags
   )
+  lifecycle {
+    ignore_changes = [ingress, egress]
+  }
 }
 
 # Reglas dinámicas de ingreso

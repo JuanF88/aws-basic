@@ -18,9 +18,10 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name                                        = "${var.environment}-public-subnet-${count.index + 1}"
-    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
-    "kubernetes.io/role/elb"                    = "1"
+    Name                                            = "${var.environment}-public-subnet-${count.index + 1}"
+    "kubernetes.io/cluster/${var.eks_cluster_name}" = "shared"
+    "Kafka.io/cluster/${var.mks_cluster_name}"      = "shared"
+    "kubernetes.io/role/elb"                        = "1"
   }
 }
 
