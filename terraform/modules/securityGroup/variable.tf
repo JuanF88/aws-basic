@@ -8,7 +8,10 @@ variable "instance_name" {
   type        = string
 }
 
-
+variable "description" {
+  description = "Description"
+  type        = string
+}
 variable "additional_tags" {
   description = "Additional tags to add to the instance"
   type        = map(string)
@@ -18,4 +21,28 @@ variable "additional_tags" {
 variable "private_subnets_cidr_blocks" {
   description = "value"
   type        = list(string)
+}
+
+variable "ingress_rules" {
+  description = "Lista de reglas de ingreso para el security group"
+  type = list(object({
+    name        = string
+    from_port   = number
+    to_port     = number
+    protocol    = string
+    cidr_blocks = list(string)
+  }))
+  default = []
+}
+
+variable "egress_rules" {
+  description = "Lista de reglas de salida para el security group"
+  type = list(object({
+    name        = string
+    from_port   = number
+    to_port     = number
+    protocol    = string
+    cidr_blocks = list(string)
+  }))
+  default = []
 }

@@ -9,56 +9,26 @@ resource "aws_security_group" "ec2_sg" {
     },
     var.additional_tags
   )
-
-  lifecycle {
-    ignore_changes = [ingress, egress]
-  }
 }
 
-
-# Reglas de ingreso para Kafka (TCP y TLS)
-resource "aws_security_group_rule" "allow_kafka_tcp" {
+# Reglas dinámicas de ingreso
+resource "aws_security_group_rule" "ingress_rules" {
+  for_each          = { for rule in var.ingress_rules : rule["name"] => rule }
   type              = "ingress"
-  from_port         = 9092
-  to_port           = 9092
-  protocol          = "tcp"
-  cidr_blocks       = var.private_subnets_cidr_blocks # Asegúrate de pasar este valor como variable
+  from_port         = each.value["from_port"]
+  to_port           = each.value["to_port"]
+  protocol          = each.value["protocol"]
+  cidr_blocks       = each.value["cidr_blocks"]
   security_group_id = aws_security_group.ec2_sg.id
-  # tags = {
-  #   Name = "${var.instance_name}-kafka-tcp"
-  # }
 }
 
-resource "aws_security_group_rule" "allow_kafka_tls" {
-  type              = "ingress"
-  from_port         = 9094
-  to_port           = 9094
-  protocol          = "tcp"
-  cidr_blocks       = var.private_subnets_cidr_blocks
-  security_group_id = aws_security_group.ec2_sg.id
-  # tags = {
-  #   Name = "${var.instance_name}-kafka-tls"
-  # }
-}
-
-# Reglas de salida (mantener regla genérica de salida)
-resource "aws_security_group_rule" "allow_outbound" {
+# Reglas dinámicas de salida
+resource "aws_security_group_rule" "egress_rules" {
+  for_each          = { for rule in var.egress_rules : rule["name"] => rule }
   type              = "egress"
-  from_port         = 0
-  to_port           = 0
-  protocol          = "-1"
-  cidr_blocks       = ["0.0.0.0/0"]
+  from_port         = each.value["from_port"]
+  to_port           = each.value["to_port"]
+  protocol          = each.value["protocol"]
+  cidr_blocks       = each.value["cidr_blocks"]
   security_group_id = aws_security_group.ec2_sg.id
-}
-
-resource "aws_security_group_rule" "allow_worker_nodes" {
-  type              = "ingress"
-  from_port         = 443
-  to_port           = 443
-  protocol          = "tcp"
-  cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.ec2_sg.id
-  # tags = {
-  #   Name = "${var.instance_name}-kafka-tls"
-  # }
 }

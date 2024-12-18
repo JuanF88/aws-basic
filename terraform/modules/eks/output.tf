@@ -18,9 +18,9 @@ output "cluster_arn" {
   value       = aws_eks_cluster.eks_cluster.arn
 }
 
-output "eks_worker_sg_id" {
-  description = "Security Group ID of EKS worker nodes"
-  value       = aws_security_group.eks_worker_sg.id
-}
+# output "eks_worker_sg_id" {
+#   description = "Security Group ID of EKS worker nodes"
+#   value       = aws_security_group.eks_worker_sg.id
+# }
 
   

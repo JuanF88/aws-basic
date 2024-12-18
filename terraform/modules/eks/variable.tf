@@ -23,6 +23,10 @@ variable "public_subnet_ids" {
   type        = list(string)
 }
 
+variable "security_group_id" {
+  description = "security group ID"
+  type        = string
+}
 # variable "ec2_ssh_key_name" {
 #   description = "Name of the EC2 Key Pair for SSH access to worker nodes"
 #   type        = string
