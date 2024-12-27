@@ -2,6 +2,7 @@ locals {
   eks_cluster_name = "eks-ex-terraform"
   mks_cluster_name = "mks-ex-terraform"
   environment      = "dev"
+  region = "us-east-2"
   mks_module = {
     ingress_rules = [
       {
@@ -99,6 +100,33 @@ locals {
         from_port   = 1025
         to_port     = 65535
         protocol    = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+      }
+    ]
+  }
+  mwaa_module = {
+    ingress_rules = [
+      {
+        name        = "Ingress tcp 433"
+        from_port   = 433
+        to_port     = 433
+        protocol    = "tcp"
+        cidr_blocks = ["0.0.0.0/0"] # Replace with your actual public IP
+      },
+      {
+        name        = "Ingress tcp 5432"
+        from_port   = 5432
+        to_port     = 5432
+        protocol    = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+      }
+    ]
+    egress_rules = [
+      {
+        name        = "Allow-all"
+        from_port   = 0
+        to_port     = 0
+        protocol    = "-1"
         cidr_blocks = ["0.0.0.0/0"]
       }
     ]
