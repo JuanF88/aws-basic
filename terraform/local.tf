@@ -2,7 +2,8 @@ locals {
   eks_cluster_name = "eks-ex-terraform"
   mks_cluster_name = "mks-ex-terraform"
   environment      = "dev"
-  region = "us-east-2"
+  region           = "us-east-2"
+  create_s3_bucket = true
   mks_module = {
     ingress_rules = [
       {

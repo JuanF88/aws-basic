@@ -1,46 +1,94 @@
-# module "vpc" {
-#   source               = "./modules/vpc"
-#   environment          = local.environment
-#   public_subnet_count  = 2
-#   private_subnet_count = 2
-#   eks_cluster_name     = local.eks_cluster_name
-#   mks_cluster_name     = local.mks_cluster_name
-# }
+module "vpc" {
+  source               = "./modules/vpc"
+  environment          = local.environment
+  public_subnet_count  = 2
+  private_subnet_count = 2
+  eks_cluster_name     = local.eks_cluster_name
+  mks_cluster_name     = local.mks_cluster_name
+}
 
-# module "security_group_mwaa" {
-#   source = "./modules/securityGroup"
-#   instance_name               = "mwaa-security-group"
-#   description                 = "Security group for MWAA"
-#   vpc_id                      = module.vpc.vpc_id
-#   private_subnets_cidr_blocks = module.vpc.private_subnets_cidr_blocks
-#   ingress_rules               = local.mwaa_module.ingress_rules
-#   egress_rules                = local.mwaa_module.egress_rules
-#   depends_on = [module.vpc]
-# }
+module "security_group_mwaa" {
+  source                      = "./modules/securityGroup"
+  instance_name               = "mwaa-security-group"
+  description                 = "Security group for MWAA"
+  vpc_id                      = module.vpc.vpc_id
+  private_subnets_cidr_blocks = module.vpc.private_subnets_cidr_blocks
+  ingress_rules               = local.mwaa_module.ingress_rules
+  egress_rules                = local.mwaa_module.egress_rules
+  depends_on                  = [module.vpc]
+}
 
-# module "mwaa"{
-#   source = "./modules/mwaa"
 
-#   security_group_ids = [module.security_group_mwaa.security_group_id]
-#   subnet_ids = module.vpc.private_subnet_ids
+###################
+# S3 Bucket
+###################
+resource "aws_s3_bucket" "mwaa" {
+  count = local.create_s3_bucket ? 1 : 0
 
-#   aws_account_id = "677276109682"
-#   region = local.region
-#   env = local.environment
-#   project_name = "test"
-#   cloud_provider = "aws"
-#   infra_component_name  = "mwaa"
-#   create_mwaa_env       = true
-#   airflow_version       = "2.9.2"
-#   environment_class     = "mw1.small"
-#   webserver_access_mode = "PUBLIC_ONLY"
-#   min_workers           = 1
-#   max_workers           = 10
-#   create_s3_bucket      = true
-#   dag_s3_path           = "src/"
-#   #plugins_s3_path       = "plugins.zip"
-#   #requirements_s3_path  = "requirements.txt"
-#   schedulers            = 2
+  bucket = "test-mwaa-configs-dev"
+
+  #tags = var.tags
+}
+
+
+#tfsec:ignore:aws-s3-encryption-customer-key
+resource "aws_s3_bucket_server_side_encryption_configuration" "mwaa" {
+  count = local.create_s3_bucket ? 1 : 0
+
+  bucket = aws_s3_bucket.mwaa[0].id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_versioning" "mwaa" {
+  count = local.create_s3_bucket ? 1 : 0
+
+  bucket = aws_s3_bucket.mwaa[0].id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "mwaa" {
+  count = local.create_s3_bucket ? 1 : 0
+
+  bucket = aws_s3_bucket.mwaa[0].id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  restrict_public_buckets = true
+  ignore_public_acls      = true
+}
+
+module "mwaa"{
+  source = "./modules/mwaa"
+
+  security_group_ids = [module.security_group_mwaa.security_group_id]
+  subnet_ids = module.vpc.private_subnet_ids
+
+  aws_account_id = "677276109682"
+  region = local.region
+  env = local.environment
+  project_name = "test"
+  cloud_provider = "aws"
+  infra_component_name  = "mwaa"
+  create_mwaa_env       = true
+  airflow_version       = "2.10.3"
+  environment_class     = "mw1.small"
+  webserver_access_mode = "PUBLIC_ONLY"
+  min_workers           = 1
+  max_workers           = 10
+  create_s3_bucket      = true
+  dag_s3_path           = "src/"
+  source_bucket_arn = aws_s3_bucket.mwaa[0].arn
+  #plugins_s3_path       = "plugins.zip"
+  #requirements_s3_path  = "requirements.txt"
+  schedulers            = 2
 
 #   logging_configuration = {
 #     dag_processing_logs = {
@@ -68,7 +116,7 @@
 #     "webserver.warn_deployment_exposure" = "False",
 #     "core.test_connection"               = "Enabled",
 #   }
-# }
+}
 
 # module "security_group_eks" {
 #   source = "./modules/securityGroup"

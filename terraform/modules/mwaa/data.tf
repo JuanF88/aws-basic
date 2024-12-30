@@ -67,8 +67,8 @@ data "aws_iam_policy_document" "mwaa" {
       "s3:List*"
     ]
     resources = [
-      local.source_bucket_arn,
-      "${local.source_bucket_arn}/*",
+      var.source_bucket_arn,
+      "${var.source_bucket_arn}/*",
       "arn:aws:s3:::${var.project_name}-*-landing-zone-${var.env}",
       "arn:aws:s3:::${var.project_name}-forecast-engine-${var.env}",
       "arn:aws:s3:::xpr-forecast-poc1", # Temporary Hardcoded since it is POC temporary buckets
