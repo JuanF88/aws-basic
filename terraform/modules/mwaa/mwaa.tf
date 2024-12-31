@@ -21,10 +21,10 @@ resource "aws_mwaa_environment" "mwaa" {
   schedulers                       = var.schedulers
   execution_role_arn               = local.execution_role_arn
   #airflow_configuration_options    = local.airflow_configuration_options
-  source_bucket_arn                = var.source_bucket_arn
-  webserver_access_mode            = var.webserver_access_mode
-  weekly_maintenance_window_start  = var.weekly_maintenance_window_start
-  tags                             = var.tags
+  source_bucket_arn               = var.source_bucket_arn
+  webserver_access_mode           = var.webserver_access_mode
+  weekly_maintenance_window_start = var.weekly_maintenance_window_start
+  tags                            = var.tags
 
   network_configuration {
     security_group_ids = var.security_group_ids
