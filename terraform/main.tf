@@ -18,7 +18,6 @@ module "security_group_mwaa" {
   depends_on                  = [module.vpc]
 }
 
-
 ###################
 # S3 Bucket
 ###################
