@@ -1,3 +1,32 @@
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+Configuración: En el main crear la VPC, Security group y el S3 que alamacenará la Configuración.
+En el directorio raíz del S3 se deberá cargar el archivo "requirements.txt", este archivo simplemente deberá contener
+las librerias a utilizar, de no necesitar ninguna simplemente crearlo vacío o comentar esa variable.
+Ejemplo del archivo requirements.txt: 
+    apache-airflow==2.10.3
+    boto3
+    pandas
+
+Luego, crear una carpeta src dentro del directorio, esta carpeta contendrá todos los dags que se ejecutarán.
+Cargar un Dag de prueba, ejemplo de DAG:
+
+from airflow import DAG
+from airflow.operators.dummy import DummyOperator
+from datetime import datetime
+
+with DAG(
+    'test_dag',
+    description='Test DAG for MWAA',
+    schedule_interval=None,
+    start_date=datetime(2024, 1, 1),
+    catchup=False,
+) as dag:
+    task = DummyOperator(task_id='dummy_task')
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 Tener en cuenta la creación se las subnet privadas,
 Crear una carpeta dentro del s3 llamada "src" ahí estarán ubicados los Dags
 Dentro del s3 crear un archivo "requirements.txt" donde estarán las librerias a importar
